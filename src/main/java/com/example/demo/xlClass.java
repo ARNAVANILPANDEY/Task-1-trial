@@ -10,8 +10,8 @@ public class xlClass {
     Vector<String> installmentDueDate=new Vector<String>();
     Vector<Double> installmentAmount=new Vector<Double>();
     Vector<Double> interestRate=new Vector<Double>();
-    Vector<Double> cp=new Vector<Double>();
-    Vector<Double> ci=new Vector<Double>();
-    Vector<Double> co=new Vector<Double>();
-    Vector<Double> cc=new Vector<Double>();
+    Vector<Double> colCurrPrincipal=new Vector<Double>();
+    Vector<Double> colCurrInterest=new Vector<Double>();
+    Vector<Double> colCurrOpeningBalance=new Vector<Double>();
+    Vector<Double> colCurrClosingBalance=new Vector<Double>();
 }
