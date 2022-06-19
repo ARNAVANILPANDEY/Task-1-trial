@@ -1,16 +1,19 @@
 package com.example.demo;
 
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Vector;
 
 //import static jdk.nashorn.internal.objects.NativeMath.round;
@@ -39,12 +42,21 @@ public class DemoApplication {
         return simpleInterest;
     }
 
-    @RequestMapping("home")
-    public String home()
-    {
+    @RequestMapping("table_ui")
+    public String home() throws IOException {
+        //Reading
+        HashMap<String, String> readData = reader.reading();
+        System.out.println("Read Data:\t"+readData);
+
+        //System.out.println(readData.get("Account Open Date"));
+        Date javaDate= DateUtil.getJavaDate(Double.parseDouble((String) readData.get("Account Open Date")));
+
         //System.out.println("Hello");
-        Double fees=1000.0,principleAmount=100000+fees, rateOfInterest=0.12;
-        Long installmentsPerYear = Long.valueOf(12), totYears= Long.valueOf(2), totInstallments;
+        Double fees= Double.valueOf(readData.get("Finance Fees")),
+                principleAmount=Double.valueOf(readData.get("Amount"))+fees,
+                rateOfInterest=Double.valueOf(readData.get("Interest Rate"));
+        Long installmentsPerYear = Long.valueOf(12), totYears= (Double.valueOf(readData.get("Tenure")).longValue())/12,
+                totInstallments;
         Double pmt,lastPMT;
         totInstallments=installmentsPerYear*totYears;
         Double currPrincipal, currInterest, currOpenBal, currClosBal;
@@ -55,9 +67,12 @@ public class DemoApplication {
         System.out.println("PMT= "+pmt);
 
         //Calender works
-        String startDate="10 Jun 22";
-        Calendar cal = Calendar.getInstance();
+        //String startDate="10 Jun 22";
         SimpleDateFormat simpleformat2 = new SimpleDateFormat("dd MMM yy");
+        String startDate=""+simpleformat2.format(javaDate);
+        System.out.println(startDate);
+        Calendar cal = Calendar.getInstance();
+
         Date par = null;
         try {
             par = simpleformat2.parse(startDate);
@@ -66,7 +81,7 @@ public class DemoApplication {
         }
         cal.setTime(par);
 
-
+        //System.out.println("JAVA DATE IS \t"+simpleformat2.format(javaDate));
 
 
         xlClass retClass =new xlClass();
@@ -160,7 +175,10 @@ public class DemoApplication {
 
         }
 
-        return "home.html";
+
+        Vector<HashMap<String,String>> retVec=new Vector<HashMap<String,String>>();
+
+        return "table_ui.html";
     }
 
     public static void main(String[] args) {

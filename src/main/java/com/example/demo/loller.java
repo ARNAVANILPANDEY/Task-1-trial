@@ -55,6 +55,7 @@ public class loller {
                 } else if (cell.getCellType() == CellType.NUMERIC) {
                     val = cell.getNumericCellValue();
                     j++;
+
                 } else if (DateUtil.isCellDateFormatted(cell)) {
                     System.out.println("The cell contains a date value: " +
                             cell.getDateCellValue());
