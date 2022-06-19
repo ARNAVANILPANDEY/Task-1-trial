@@ -44,7 +44,7 @@ public class DemoApplication {
 
     @RequestMapping("table_ui")
     public String home() throws IOException {
-        //Reading
+        /* *****************Reading**************************************** */
         HashMap<String, String> readData = reader.reading();
         System.out.println("Read Data:\t"+readData);
 
@@ -66,13 +66,13 @@ public class DemoApplication {
         pmt=calculatePmt(principleAmount,rateOfInterest,installmentsPerYear,totYears);
         System.out.println("PMT= "+pmt);
 
-        //Calender works
-        //String startDate="10 Jun 22";
+        /* ********************************Calender works**************************************** */
         SimpleDateFormat simpleformat2 = new SimpleDateFormat("dd MMM yy");
         String startDate=""+simpleformat2.format(javaDate);
         System.out.println(startDate);
-        Calendar cal = Calendar.getInstance();
 
+        //Configuring the calendar instance to date given
+        Calendar cal = Calendar.getInstance();
         Date par = null;
         try {
             par = simpleformat2.parse(startDate);
@@ -83,9 +83,9 @@ public class DemoApplication {
 
         //System.out.println("JAVA DATE IS \t"+simpleformat2.format(javaDate));
 
-
+        /* ********************************Preparing data************************************ */
         xlClass retClass =new xlClass();
-        //Create the spreadsheet for emi details
+        //Create the spreadsheet data for emi details
         for (int i=0;i<totInstallments;++i)
         {
 
@@ -105,13 +105,14 @@ public class DemoApplication {
             SimpleDateFormat tempSdf1=new SimpleDateFormat("dd MMM yy");
             SimpleDateFormat tempSdf2=new SimpleDateFormat("dd MMM yy");
 
+            //Calculating number of days between current and previous month
             Long day= null;
             try {
                 day =(tempSdf2.parse(currDate).getTime()-tempSdf1.parse(prevDate).getTime())/((1000*60*60*24));
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
-            if (i==0)
+            if (i==0)                   //First Installment
             {
                 currOpenBal=principleAmount;
                 retClass.installmentAmount.addElement(pmt);
@@ -122,7 +123,7 @@ public class DemoApplication {
 
             }
 
-            else if (i==totInstallments-1)
+            else if (i==totInstallments-1)      //Last Installment
             {
                 currOpenBal=retClass.colCurrClosingBalance.lastElement();
 
@@ -135,7 +136,7 @@ public class DemoApplication {
 
             }
 
-            else
+            else            //Rest installments
             {
                 retClass.installmentAmount.addElement(pmt);
                 currOpenBal=retClass.colCurrClosingBalance.lastElement();
@@ -157,26 +158,36 @@ public class DemoApplication {
 
 
         }
-
-
+        /* ***********************Writing to excel*************************************** */
+        Vector<HashMap<String,String>> retVec=new Vector<HashMap<String,String>>();
         for (int i=0;i<retClass.installmentNumber.size();++i)
         {
+            HashMap<String,String> tempMap =new HashMap<String,String>();
             System.out.print(retClass.installmentNumber.elementAt(i)+" ");
+            tempMap.put("Installment Number",String.valueOf(retClass.installmentNumber.elementAt(i)));
             System.out.print(" "+retClass.stageNumber.elementAt(i)+" ");
+            tempMap.put("Stage Number",String.valueOf(retClass.stageNumber.elementAt(i)));
             System.out.print(" "+retClass.installmentDueDate.elementAt(i)+" ");
+            tempMap.put("Installment Due Date",String.valueOf(retClass.installmentDueDate.elementAt(i)));
             System.out.print(" "+retClass.installmentAmount.elementAt(i)+" ");
+            tempMap.put("Installment Amount",String.valueOf(retClass.installmentAmount.elementAt(i)));
             System.out.print(" "+retClass.interestRate.elementAt(i)+" ");
+            tempMap.put("Interest Rate",String.valueOf(retClass.interestRate.elementAt(i)));
             System.out.print(" "+retClass.colCurrPrincipal.elementAt(i)+" ");
+            tempMap.put("Current Principal",String.valueOf(retClass.colCurrPrincipal.elementAt(i)));
             System.out.print(" "+retClass.colCurrInterest.elementAt(i)+" ");
+            tempMap.put("Current Interest",String.valueOf(retClass.colCurrInterest.elementAt(i)));
             System.out.print(" "+retClass.colCurrOpeningBalance.elementAt(i)+" ");
+            tempMap.put("Current Opening Balance",String.valueOf(retClass.colCurrOpeningBalance.elementAt(i)));
             System.out.print(" "+retClass.colCurrClosingBalance.elementAt(i)+" ");
+            tempMap.put("Current Closing Balance",String.valueOf(retClass.colCurrClosingBalance.elementAt(i)));
             System.out.println("");
-
+            retVec.addElement(tempMap);
 
         }
 
+        //Call the write class
 
-        Vector<HashMap<String,String>> retVec=new Vector<HashMap<String,String>>();
 
         return "table_ui.html";
     }
