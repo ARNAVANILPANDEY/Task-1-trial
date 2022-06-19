@@ -1,16 +1,19 @@
 package com.example.demo;
 
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Vector;
 
 //import static jdk.nashorn.internal.objects.NativeMath.round;
@@ -39,12 +42,21 @@ public class DemoApplication {
         return simpleInterest;
     }
 
-    @RequestMapping("home")
-    public String home()
-    {
+    @RequestMapping("table_ui")
+    public String home() throws IOException {
+        /* *****************Reading**************************************** */
+        HashMap<String, String> readData = reader.reading();
+        System.out.println("Read Data:\t"+readData);
+
+        //System.out.println(readData.get("Account Open Date"));
+        Date javaDate= DateUtil.getJavaDate(Double.parseDouble((String) readData.get("Account Open Date")));
+
         //System.out.println("Hello");
-        Double fees=1000.0,principleAmount=100000+fees, rateOfInterest=0.12;
-        Long installmentsPerYear = Long.valueOf(12), totYears= Long.valueOf(2), totInstallments;
+        Double fees= Double.valueOf(readData.get("Finance Fees")),
+                principleAmount=Double.valueOf(readData.get("Amount"))+fees,
+                rateOfInterest=Double.valueOf(readData.get("Interest Rate"));
+        Long installmentsPerYear = Long.valueOf(12), totYears= (Double.valueOf(readData.get("Tenure")).longValue())/12,
+                totInstallments;
         Double pmt,lastPMT;
         totInstallments=installmentsPerYear*totYears;
         Double currPrincipal, currInterest, currOpenBal, currClosBal;
@@ -54,10 +66,13 @@ public class DemoApplication {
         pmt=calculatePmt(principleAmount,rateOfInterest,installmentsPerYear,totYears);
         System.out.println("PMT= "+pmt);
 
-        //Calender works
-        String startDate="10 Jun 22";
-        Calendar cal = Calendar.getInstance();
+        /* ********************************Calender works**************************************** */
         SimpleDateFormat simpleformat2 = new SimpleDateFormat("dd MMM yy");
+        String startDate=""+simpleformat2.format(javaDate);
+        System.out.println(startDate);
+
+        //Configuring the calendar instance to date given
+        Calendar cal = Calendar.getInstance();
         Date par = null;
         try {
             par = simpleformat2.parse(startDate);
@@ -66,11 +81,11 @@ public class DemoApplication {
         }
         cal.setTime(par);
 
+        //System.out.println("JAVA DATE IS \t"+simpleformat2.format(javaDate));
 
-
-
+        /* ********************************Preparing data************************************ */
         xlClass retClass =new xlClass();
-        //Create the spreadsheet for emi details
+        //Create the spreadsheet data for emi details
         for (int i=0;i<totInstallments;++i)
         {
 
@@ -90,13 +105,14 @@ public class DemoApplication {
             SimpleDateFormat tempSdf1=new SimpleDateFormat("dd MMM yy");
             SimpleDateFormat tempSdf2=new SimpleDateFormat("dd MMM yy");
 
+            //Calculating number of days between current and previous month
             Long day= null;
             try {
                 day =(tempSdf2.parse(currDate).getTime()-tempSdf1.parse(prevDate).getTime())/((1000*60*60*24));
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
-            if (i==0)
+            if (i==0)                   //First Installment
             {
                 currOpenBal=principleAmount;
                 retClass.installmentAmount.addElement(pmt);
@@ -107,7 +123,7 @@ public class DemoApplication {
 
             }
 
-            else if (i==totInstallments-1)
+            else if (i==totInstallments-1)      //Last Installment
             {
                 currOpenBal=retClass.colCurrClosingBalance.lastElement();
 
@@ -120,7 +136,7 @@ public class DemoApplication {
 
             }
 
-            else
+            else            //Rest installments
             {
                 retClass.installmentAmount.addElement(pmt);
                 currOpenBal=retClass.colCurrClosingBalance.lastElement();
@@ -142,25 +158,38 @@ public class DemoApplication {
 
 
         }
-
-
+        /* ***********************Writing to excel*************************************** */
+        Vector<HashMap<String,String>> retVec=new Vector<HashMap<String,String>>();
         for (int i=0;i<retClass.installmentNumber.size();++i)
         {
+            HashMap<String,String> tempMap =new HashMap<String,String>();
             System.out.print(retClass.installmentNumber.elementAt(i)+" ");
+            tempMap.put("Installment Number",String.valueOf(retClass.installmentNumber.elementAt(i)));
             System.out.print(" "+retClass.stageNumber.elementAt(i)+" ");
+            tempMap.put("Stage Number",String.valueOf(retClass.stageNumber.elementAt(i)));
             System.out.print(" "+retClass.installmentDueDate.elementAt(i)+" ");
+            tempMap.put("Installment Due Date",String.valueOf(retClass.installmentDueDate.elementAt(i)));
             System.out.print(" "+retClass.installmentAmount.elementAt(i)+" ");
+            tempMap.put("Installment Amount",String.valueOf(retClass.installmentAmount.elementAt(i)));
             System.out.print(" "+retClass.interestRate.elementAt(i)+" ");
+            tempMap.put("Interest Rate",String.valueOf(retClass.interestRate.elementAt(i)));
             System.out.print(" "+retClass.colCurrPrincipal.elementAt(i)+" ");
+            tempMap.put("Current Principal",String.valueOf(retClass.colCurrPrincipal.elementAt(i)));
             System.out.print(" "+retClass.colCurrInterest.elementAt(i)+" ");
+            tempMap.put("Current Interest",String.valueOf(retClass.colCurrInterest.elementAt(i)));
             System.out.print(" "+retClass.colCurrOpeningBalance.elementAt(i)+" ");
+            tempMap.put("Current Opening Balance",String.valueOf(retClass.colCurrOpeningBalance.elementAt(i)));
             System.out.print(" "+retClass.colCurrClosingBalance.elementAt(i)+" ");
+            tempMap.put("Current Closing Balance",String.valueOf(retClass.colCurrClosingBalance.elementAt(i)));
             System.out.println("");
-
+            retVec.addElement(tempMap);
 
         }
 
-        return "home.html";
+        //Call the write class
+
+
+        return "table_ui.html";
     }
 
     public static void main(String[] args) {

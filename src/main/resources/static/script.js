@@ -1,4 +1,4 @@
-fetch("SimpleCalculator.json").then((data)=>{
+fetch('SimpleCalculator.json').then((data)=>{
      return data.json();
    }).then((obj)=>{
       console.log(obj);
