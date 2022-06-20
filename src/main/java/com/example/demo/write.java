@@ -1,85 +1,93 @@
 package com.example.demo;
 
+
 import java.io.File;
-import java.io.FileInputStream;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.*;
 
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
-/**
- *
- * @author javacodepoint.com
- *
- */
 
 public class write {
 
-    public static void main(String[] args) {
+	// any exceptions need to be caught
+	public static void main(Vector<HashMap<String,String>> arg) throws IOException
+	{
+		// workbook object
+		XSSFWorkbook workbook = new XSSFWorkbook();
 
-        // Creating file object of existing excel file
-        File xlsxFile = new File("C:\\\\Users\\\\Anshuman Oracle\\\\Documents\\\\workspace-spring-tool-suite-4-4.14.1.RELEASE\\\\loll\\\\src\\\\main\\\\java\\\\loll\\\\bok.xlsx");
+		// spreadsheet object
+		XSSFSheet spreadsheet
+			= workbook.createSheet(" Student Data ");
 
-        //New students records to update in excel file
-        Object[][] newinfo = {
-                {"Installment No.","Stage Number","Installment Due Date","Installment Amount","Interest Rate",
-                        "Component 1 (Principal)","Component 2 (Interest)",	"Component 3 (Fees)","Component 4 (Insurance Premium)","Opening Balance","Closing Balance"},{}};
+		// creating a row object
+		XSSFRow row;
+
+		// This data needs to be written (Object[])
+		HashMap<Long, Object[]> studentData
+			= new HashMap<Long, Object[]>();
+
+		studentData.put(
+			Long.valueOf(0),
+			new Object[] {"Installment No.","Stage Number","Installment Due Date","Installment Amount","Interest Rate",
+					"Component 1 (Principal)","Component 2 (Interest)","Opening Balance","Closing Balance" });
+
+//		studentData.put("2", new Object[] { "1", "10-Jul-22","4,754.42","12.00%","3,758.26","996.16","1,01,000.00","97,241.74"});
+//		for (Map.Entry<String, Object[]> entry :  studentData.entrySet()) {
+////		    System.out.println(Double.toString(Math.round(Double.parseDouble(Arrays.toString(entry.getValue())))));
+//			
+////		    Arrays.toString(myArray);
+//		}
 
 
-        try {
-            //Creating input stream
-            FileInputStream inputStream = new FileInputStream(xlsxFile);
 
-            //Creating workbook from input stream
-            Workbook workbook = WorkbookFactory.create(inputStream);
+		for ( HashMap<String, String> tem: arg)
+		{
+			System.out.println();
+			studentData.put(Long.valueOf(tem.get("Installment Number")),new Object[]{tem.get("Installment Number"),
+					tem.get(("Stage Number")),
+					tem.get(("Installment Due Date")),
+					tem.get(("Installment Amount")),
+					tem.get(("Interest Rate")),
+					tem.get(("Current Principal")),
+					tem.get(("Current Interest")),
+					tem.get(("Current Opening Balance")),
+					tem.get(("Current Closing Balance"))});
+		}
+		System.out.println("STUDENT DATA MAP :"+studentData);
+		List<Long> keyStrings=new ArrayList<>(studentData.keySet());
+		Collections.sort(keyStrings);
+		//Set<String> keyid = studentData.keySet();
+		System.out.println("KEYSTIRNGS"+keyStrings);
+		int rowid = 0;
 
-            //Reading first sheet of excel file
-            Sheet sheet = workbook.getSheetAt(0);
+		// writing the data into the sheets...
 
-            //Getting the count of existing records
-            int rowCount = sheet.getLastRowNum();
+		for (Long key : keyStrings) {
 
-            //Iterating new students to update
-            for (Object[] student : newinfo) {
 
-                //Creating new row from the next row count
-                Row row = sheet.createRow(++rowCount);
+			row = spreadsheet.createRow(rowid++);
+			Object[] objectArr = studentData.get(key);
+			
+			int cellid = 0;
 
-                int columnCount = 0;
+			for (Object obj : objectArr) {
+				Cell cell = row.createCell(cellid++);
+				
+				cell.setCellValue((String)obj);
+				System.out.println("Object Write:"+obj);
+			}
+		}
 
-                //Iterating student informations
-                for (Object info : student) {
+		
+		FileOutputStream out = new FileOutputStream(
+			new File("final.xlsx"));
 
-                    //Creating new cell and setting the value
-                    Cell cell = row.createCell(columnCount++);
-                    if (info instanceof String) {
-                        cell.setCellValue((String) info);
-                    } else if (info instanceof Integer) {
-                        cell.setCellValue((Integer) info);
-                    }
-                }
-            }
-            //Close input stream
-            inputStream.close();
 
-            //Crating output stream and writing the updated workbook
-            FileOutputStream os = new FileOutputStream(xlsxFile);
-            workbook.write(os);
-
-            //Close the workbook and output stream
-            workbook.close();
-            os.close();
-
-            System.out.println("Excel file has been updated successfully.");
-
-        } catch (EncryptedDocumentException | IOException e) {
-            System.err.println("Exception while updating an existing excel file.");
-            e.printStackTrace();
-        }
-    }
+		workbook.write(out);
+		out.close();
+	}
 }

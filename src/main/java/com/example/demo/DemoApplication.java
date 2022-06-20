@@ -162,6 +162,9 @@ public class DemoApplication {
         Vector<HashMap<String,String>> retVec=new Vector<HashMap<String,String>>();
         for (int i=0;i<retClass.installmentNumber.size();++i)
         {
+//            DecimalFormat df = new DecimalFormat("#.####");
+//            df.setRoundingMode(RoundingMode.);
+
             HashMap<String,String> tempMap =new HashMap<String,String>();
             System.out.print(retClass.installmentNumber.elementAt(i)+" ");
             tempMap.put("Installment Number",String.valueOf(retClass.installmentNumber.elementAt(i)));
@@ -185,9 +188,9 @@ public class DemoApplication {
             retVec.addElement(tempMap);
 
         }
-
+        System.out.println(""+retVec);
         //Call the write class
-
+        write.main(retVec);
 
         return "table_ui.html";
     }
