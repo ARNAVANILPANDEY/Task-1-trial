@@ -28,7 +28,12 @@ function myFunction() {
          "Opening Balance": "101000.0",
          "Closing Balance": "97241.74368901191"
         },]
-        const obj = JSON.parse(JSON.stringify(text));
-        var fs = require('fs');
-fs.writeFile("thing.json", dictstring);
+        
+const json = JSON.parse(JSON.stringify(text));
+var fs = require('fs');
+fs.writeFile('myjsonfile.json', JSON.stringify(json),function(err) {
+	if(err) throw err;
+	console.log("SUccess");
+	}
+);
 }
