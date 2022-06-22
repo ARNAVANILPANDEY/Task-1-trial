@@ -30,7 +30,11 @@ function myFunction() {
         },]
         
 const json = JSON.parse(JSON.stringify(text));
-var fs = require('fs');
+define(['require', 'name'], function (require) {
+        var namedModule = require('name');
+    });
+const fs = require('fs').promises;
+
 fs.writeFile('myjsonfile.json', JSON.stringify(json),function(err) {
 	if(err) throw err;
 	console.log("SUccess");
